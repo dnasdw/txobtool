@@ -77,10 +77,17 @@ bool CCgfx::ExportFile()
 				bResult = false;
 				break;
 			}
-			n32 nHeight = pBinU32[i + 14];
-			n32 nWidth = pBinU32[i + 15];
-			n32 nSize = pBinU32[i + 16];
-			n32 nOffset = (i + 17) * 4 + pBinU32[i + 17];
+			n32 nInfoOffset = pBinU32[i + 13];
+			if (nInfoOffset % 4 != 0)
+			{
+				printf("ERROR: info offset %% 4 != 0\n\n");
+				bResult = false;
+				break;
+			}
+			n32 nHeight = pBinU32[i + 13 + nInfoOffset / 4];
+			n32 nWidth = pBinU32[i + 14 + nInfoOffset / 4];
+			n32 nSize = pBinU32[i + 15 + nInfoOffset / 4];
+			n32 nOffset = (i + 16 + nInfoOffset / 4) * 4 + pBinU32[i + 16 + nInfoOffset / 4];
 			n32 nCheckSize = 0;
 			for (n32 l = 0; l < nMipmapLevel; l++)
 			{
@@ -190,10 +197,17 @@ bool CCgfx::ImportFile()
 				bResult = false;
 				break;
 			}
-			n32 nHeight = pBinU32[i + 14];
-			n32 nWidth = pBinU32[i + 15];
-			n32 nSize = pBinU32[i + 16];
-			n32 nOffset = (i + 17) * 4 + pBinU32[i + 17];
+			n32 nInfoOffset = pBinU32[i + 13];
+			if (nInfoOffset % 4 != 0)
+			{
+				printf("ERROR: info offset %% 4 != 0\n\n");
+				bResult = false;
+				break;
+			}
+			n32 nHeight = pBinU32[i + 13 + nInfoOffset / 4];
+			n32 nWidth = pBinU32[i + 14 + nInfoOffset / 4];
+			n32 nSize = pBinU32[i + 15 + nInfoOffset / 4];
+			n32 nOffset = (i + 16 + nInfoOffset / 4) * 4 + pBinU32[i + 16 + nInfoOffset / 4];
 			n32 nCheckSize = 0;
 			for (n32 l = 0; l < nMipmapLevel; l++)
 			{
