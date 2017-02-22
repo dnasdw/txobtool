@@ -6,4 +6,4 @@ cd "$rootdir"
 rootdir=`pwd`
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"$rootdir"
 cd "$cwdir"
-"$rootdir/txobtool_d" "$1" "$2" "$3" "$4" "$5" "$6"
+"$rootdir/txobtool" "$1" "$2" "$3" "$4" "$5" "$6"

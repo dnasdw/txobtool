@@ -5,11 +5,12 @@ A tool for exporting/importing cgfx file.
 ## History
 
 - v1.0.0 @ 2015.03.11 - First release
+- v1.0.1 @ 2017.02.22 - Fix offset
 
 ## Platforms
 
-- Linux *(Ubuntu 14.04, CentOS 7.0)*
-- Mac OS X *10.10*
+- Linux
+- macOS
 - Windows *XP+*
 
 ## Building
@@ -17,7 +18,6 @@ A tool for exporting/importing cgfx file.
 ### Dependencies
 
 - cmake
-- libiconv **(linux only)**
 
 ### Compiling
 
@@ -40,13 +40,13 @@ make install
 ### Windows
 
 ~~~
-txobtool.exe [option...] [option]...
+txobtool [option...] [option]...
 ~~~
 
 ### Other
 
 ~~~
-txobtool [option...] [option]...
+txobtool.sh [option...] [option]...
 ~~~
 
 > Remember to do `chmod +x txobtool` first
@@ -54,7 +54,3 @@ txobtool [option...] [option]...
 ## Options
 
 See `txobtool --help` messages.
-
-## FAQ
-
-Nothing here for now.
