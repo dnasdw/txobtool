@@ -33,6 +33,10 @@ int CTxobTool::ParseOptions(int a_nArgc, char* a_pArgv[])
 	for (int i = 1; i < a_nArgc; i++)
 	{
 		int nArgpc = static_cast<int>(strlen(a_pArgv[i]));
+		if (nArgpc == 0)
+		{
+			continue;
+		}
 		int nIndex = i;
 		if (a_pArgv[i][0] != '-')
 		{
