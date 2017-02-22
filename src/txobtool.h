@@ -1,7 +1,7 @@
 #ifndef TXOBTOOL_H_
 #define TXOBTOOL_H_
 
-#include "utility.h"
+#include <sdw.h>
 
 class CTxobTool
 {

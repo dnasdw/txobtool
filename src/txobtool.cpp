@@ -260,7 +260,7 @@ bool CTxobTool::importFile()
 
 int main(int argc, char* argv[])
 {
-	FSetLocale();
+	SetLocale();
 	CTxobTool tool;
 	if (tool.ParseOptions(argc, argv) != 0)
 	{

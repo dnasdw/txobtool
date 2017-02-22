@@ -1,7 +1,7 @@
 #ifndef CGFX_H_
 #define CGFX_H_
 
-#include "utility.h"
+#include <sdw.h>
 
 namespace pvrtexture
 {
@@ -44,7 +44,7 @@ private:
 	static int decode(u8* a_pBuffer, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, pvrtexture::CPVRTexture** a_pPVRTexture);
 	static void encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 a_nMipmapLevel, n32 a_nBPP, u8** a_pBuffer);
 	const char* m_pFileName;
-	String m_sDirName;
+	const char* m_pDirName;
 	bool m_bVerbose;
 	FILE* m_fpCgfx;
 };

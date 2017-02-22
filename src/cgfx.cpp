@@ -2,8 +2,8 @@
 #include <png.h>
 #include <PVRTextureUtilities.h>
 
-const u32 CCgfx::s_uSignatureCgfx = CONVERT_ENDIAN('CGFX');
-const u32 CCgfx::s_uSignatureTxob = CONVERT_ENDIAN('TXOB');
+const u32 CCgfx::s_uSignatureCgfx = SDW_CONVERT_ENDIAN32('CGFX');
+const u32 CCgfx::s_uSignatureTxob = SDW_CONVERT_ENDIAN32('TXOB');
 const int CCgfx::s_nBPP[] = { 32, 24, 16, 16, 16, 16, 16, 8, 8, 8, 4, 4, 4, 8 };
 const int CCgfx::s_nDecodeTransByte[64] =
 {
@@ -35,7 +35,7 @@ void CCgfx::SetFileName(const char* a_pFileName)
 
 void CCgfx::SetDirName(const char* a_pDirName)
 {
-	m_sDirName = FSAToUnicode(a_pDirName);
+	m_pDirName = a_pDirName;
 }
 
 void CCgfx::SetVerbose(bool a_bVerbose)
@@ -46,26 +46,27 @@ void CCgfx::SetVerbose(bool a_bVerbose)
 bool CCgfx::ExportFile()
 {
 	bool bResult = true;
-	m_fpCgfx = FFopen(m_pFileName, "rb");
+	m_fpCgfx = fopen(m_pFileName, "rb");
 	if (m_fpCgfx == nullptr)
 	{
+		printf("ERROR: open file %s failed\n\n", m_pFileName);
 		return false;
 	}
-	FFseek(m_fpCgfx, 0, SEEK_END);
-	n64 nFileSize = FFtell(m_fpCgfx);
-	FFseek(m_fpCgfx, 0, SEEK_SET);
-	u8* pBin = new u8[static_cast<size_t>(nFileSize)];
-	fread(pBin, 1, static_cast<size_t>(nFileSize), m_fpCgfx);
+	fseek(m_fpCgfx, 0, SEEK_END);
+	u32 uFileSize = ftell(m_fpCgfx);
+	fseek(m_fpCgfx, 0, SEEK_SET);
+	u8* pBin = new u8[uFileSize];
+	fread(pBin, 1, uFileSize, m_fpCgfx);
 	fclose(m_fpCgfx);
 	bool bMakeDir = false;
 	u32* pBinU32 = reinterpret_cast<u32*>(pBin);
-	for (n32 i = 1; i < nFileSize / 4; i++)
+	for (n32 i = 1; i < static_cast<n32>(uFileSize / 4); i++)
 	{
 		if (pBinU32[i] == s_uSignatureTxob && pBinU32[i - 1] == 0x20000011)
 		{
 			if (!bMakeDir)
 			{
-				FMakeDir(m_sDirName.c_str());
+				MkdirA(m_pDirName);
 				bMakeDir = true;
 			}
 			n32 nNameOffset = (i + 2) * 4 + pBinU32[i + 2];
@@ -102,17 +103,18 @@ bool CCgfx::ExportFile()
 			pvrtexture::CPVRTexture* pPVRTexture = nullptr;
 			if (decode(pBin + nOffset, nWidth, nHeight, nFormat, &pPVRTexture) == 0)
 			{
-				String sPngFileName = m_sDirName + STR("/") + FSAToUnicode(reinterpret_cast<char*>(pBin + nNameOffset)) + STR(".png");
-				FILE* fp = FFopenUnicode(sPngFileName.c_str(), STR("wb"));
+				String sPngFileName = Format(STR("%s/%s.png"), AToU(m_pDirName).c_str(), AToU(reinterpret_cast<char*>(pBin + nNameOffset)).c_str());
+				FILE* fp = Fopen(sPngFileName.c_str(), STR("wb"));
 				if (fp == nullptr)
 				{
+					Printf(STR("ERROR: open file %s failed\n\n"), sPngFileName.c_str());
 					delete pPVRTexture;
 					bResult = false;
 					break;
 				}
 				if (m_bVerbose)
 				{
-					FPrintf(STR("save: %s\n"), sPngFileName.c_str());
+					Printf(STR("save: %s\n"), sPngFileName.c_str());
 				}
 				png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, nullptr, nullptr);
 				if (png_ptr == nullptr)
@@ -172,19 +174,20 @@ bool CCgfx::ExportFile()
 bool CCgfx::ImportFile()
 {
 	bool bResult = true;
-	m_fpCgfx = FFopen(m_pFileName, "rb");
+	m_fpCgfx = fopen(m_pFileName, "rb");
 	if (m_fpCgfx == nullptr)
 	{
+		printf("ERROR: open file %s failed\n\n", m_pFileName);
 		return false;
 	}
-	FFseek(m_fpCgfx, 0, SEEK_END);
-	n64 nFileSize = FFtell(m_fpCgfx);
-	FFseek(m_fpCgfx, 0, SEEK_SET);
-	u8* pBin = new u8[static_cast<size_t>(nFileSize)];
-	fread(pBin, 1, static_cast<size_t>(nFileSize), m_fpCgfx);
+	fseek(m_fpCgfx, 0, SEEK_END);
+	u32 uFileSize = ftell(m_fpCgfx);
+	fseek(m_fpCgfx, 0, SEEK_SET);
+	u8* pBin = new u8[uFileSize];
+	fread(pBin, 1, uFileSize, m_fpCgfx);
 	fclose(m_fpCgfx);
 	u32* pBinU32 = reinterpret_cast<u32*>(pBin);
-	for (n32 i = 1; i < nFileSize / 4; i++)
+	for (n32 i = 1; i < static_cast<n32>(uFileSize / 4); i++)
 	{
 		if (pBinU32[i] == s_uSignatureTxob && pBinU32[i - 1] == 0x20000011)
 		{
@@ -219,16 +222,17 @@ bool CCgfx::ImportFile()
 			{
 				printf("INFO: width: %X, height: %X, checksize: %X, size: %X, bpp: %d, offset: %X, format: %0X\n", nWidth, nHeight, nCheckSize, nSize, nSize * 8 / nWidth / nHeight, nOffset, nFormat);
 			}
-			String sPngFileName = m_sDirName + STR("/") + FSAToUnicode(reinterpret_cast<char*>(pBin + nNameOffset)) + STR(".png");
-			FILE* fp = FFopenUnicode(sPngFileName.c_str(), STR("rb"));
+			String sPngFileName = Format(STR("%s/%s.png"), AToU(m_pDirName).c_str(), AToU(reinterpret_cast<char*>(pBin + nNameOffset)).c_str());
+			FILE* fp = Fopen(sPngFileName.c_str(), STR("rb"));
 			if (fp == nullptr)
 			{
+				Printf(STR("ERROR: open file %s failed\n\n"), sPngFileName.c_str());
 				bResult = false;
 				break;
 			}
 			if (m_bVerbose)
 			{
-				FPrintf(STR("load: %s\n"), sPngFileName.c_str());
+				Printf(STR("load: %s\n"), sPngFileName.c_str());
 			}
 			png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, nullptr, nullptr);
 			if (png_ptr == nullptr)
@@ -327,14 +331,15 @@ bool CCgfx::ImportFile()
 	}
 	if (bResult)
 	{
-		m_fpCgfx = FFopen(m_pFileName, "wb");
+		m_fpCgfx = fopen(m_pFileName, "wb");
 		if (m_fpCgfx != nullptr)
 		{
-			fwrite(pBin, 1, static_cast<size_t>(nFileSize), m_fpCgfx);
+			fwrite(pBin, 1, uFileSize, m_fpCgfx);
 			fclose(m_fpCgfx);
 		}
 		else
 		{
+			printf("ERROR: open file %s failed\n\n", m_pFileName);
 			bResult = false;
 		}
 	}
@@ -344,9 +349,10 @@ bool CCgfx::ImportFile()
 
 bool CCgfx::IsCgfxFile(const char* a_pFileName)
 {
-	FILE* fp = FFopen(a_pFileName, "rb");
+	FILE* fp = fopen(a_pFileName, "rb");
 	if (fp == nullptr)
 	{
+		printf("ERROR: open file %s failed\n\n", a_pFileName);
 		return false;
 	}
 	u32 uSignature = 0;
@@ -582,7 +588,6 @@ int CCgfx::decode(u8* a_pBuffer, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, pvr
 		break;
 	}
 	PVRTextureHeaderV3 pvrTextureHeaderV3;
-	MetaDataBlock metaDataBlock;
 	switch (a_nFormat)
 	{
 	case kTextureFormatRGBA8888:
@@ -630,6 +635,7 @@ int CCgfx::decode(u8* a_pBuffer, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, pvr
 	}
 	pvrTextureHeaderV3.u32Height = a_nHeight;
 	pvrTextureHeaderV3.u32Width = a_nWidth;
+	MetaDataBlock metaDataBlock;
 	metaDataBlock.DevFOURCC = PVRTEX3_IDENT;
 	metaDataBlock.u32Key = ePVRTMetaDataTextureOrientation;
 	metaDataBlock.u32DataSize = 3;
@@ -643,12 +649,12 @@ int CCgfx::decode(u8* a_pBuffer, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, pvr
 	pvrtexture::Transcode(**a_pPVRTexture, pvrtexture::PVRStandard8PixelType, ePVRTVarTypeUnsignedByteNorm, ePVRTCSpacelRGB);
 	if (a_nFormat == kTextureFormatETC1_A4)
 	{
-		u8* data = static_cast<u8*>((*a_pPVRTexture)->getDataPtr());
+		u8* pData = static_cast<u8*>((*a_pPVRTexture)->getDataPtr());
 		for (n32 i = 0; i < a_nHeight; i++)
 		{
 			for (n32 j = 0; j < a_nWidth; j++)
 			{
-				data[(i * a_nWidth + j) * 4 + 3] = pAlpha[i * a_nWidth + j];
+				pData[(i * a_nWidth + j) * 4 + 3] = pAlpha[i * a_nWidth + j];
 			}
 		}
 		delete[] pAlpha;
@@ -766,8 +772,8 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 	*a_pBuffer = new u8[nTotalSize];
 	for (n32 l = 0; l < a_nMipmapLevel; l++)
 	{
-		n32 mipmapWidth = a_nWidth >> l;
-		n32 mipmapHeight = a_nHeight >> l;
+		n32 nMipmapWidth = a_nWidth >> l;
+		n32 nMipmapHeight = a_nHeight >> l;
 		u8* pRGBA = static_cast<u8*>(pPVRTexture->getDataPtr(l));
 		u8* pAlpha = nullptr;
 		if (a_nFormat == kTextureFormatETC1_A4)
@@ -778,19 +784,19 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 		{
 		case kTextureFormatRGBA8888:
 			{
-				u8* pTemp = new u8[mipmapWidth * mipmapHeight * 4];
-				for (n32 i = 0; i < mipmapHeight; i++)
+				u8* pTemp = new u8[nMipmapWidth * nMipmapHeight * 4];
+				for (n32 i = 0; i < nMipmapHeight; i++)
 				{
-					for (n32 j = 0; j < mipmapWidth; j++)
+					for (n32 j = 0; j < nMipmapWidth; j++)
 					{
 						for (n32 k = 0; k < 4; k++)
 						{
-							pTemp[(((i / 8) * (mipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8) * 4 + k] = pRGBA[(i * mipmapWidth + j) * 4 + k];
+							pTemp[(((i / 8) * (nMipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8) * 4 + k] = pRGBA[(i * nMipmapWidth + j) * 4 + k];
 						}
 					}
 				}
 				u8* pMipmapBuffer = *a_pBuffer + nCurrentSize;
-				for (n32 i = 0; i < mipmapWidth * mipmapHeight / 64; i++)
+				for (n32 i = 0; i < nMipmapWidth * nMipmapHeight / 64; i++)
 				{
 					for (n32 j = 0; j < 64; j++)
 					{
@@ -805,19 +811,19 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 			break;
 		case kTextureFormatRGB888:
 			{
-				u8* pTemp = new u8[mipmapWidth * mipmapHeight * 3];
-				for (n32 i = 0; i < mipmapHeight; i++)
+				u8* pTemp = new u8[nMipmapWidth * nMipmapHeight * 3];
+				for (n32 i = 0; i < nMipmapHeight; i++)
 				{
-					for (n32 j = 0; j < mipmapWidth; j++)
+					for (n32 j = 0; j < nMipmapWidth; j++)
 					{
 						for (n32 k = 0; k < 3; k++)
 						{
-							pTemp[(((i / 8) * (mipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8) * 3 + k] = pRGBA[(i * mipmapWidth + j) * 3 + k];
+							pTemp[(((i / 8) * (nMipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8) * 3 + k] = pRGBA[(i * nMipmapWidth + j) * 3 + k];
 						}
 					}
 				}
 				u8* pMipmapBuffer = *a_pBuffer + nCurrentSize;
-				for (n32 i = 0; i < mipmapWidth * mipmapHeight / 64; i++)
+				for (n32 i = 0; i < nMipmapWidth * nMipmapHeight / 64; i++)
 				{
 					for (n32 j = 0; j < 64; j++)
 					{
@@ -834,19 +840,19 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 		case kTextureFormatRGB565:
 		case kTextureFormatRGBA4444:
 			{
-				u8* pTemp = new u8[mipmapWidth * mipmapHeight * 2];
-				for (n32 i = 0; i < mipmapHeight; i++)
+				u8* pTemp = new u8[nMipmapWidth * nMipmapHeight * 2];
+				for (n32 i = 0; i < nMipmapHeight; i++)
 				{
-					for (n32 j = 0; j < mipmapWidth; j++)
+					for (n32 j = 0; j < nMipmapWidth; j++)
 					{
 						for (n32 k = 0; k < 2; k++)
 						{
-							pTemp[(((i / 8) * (mipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8) * 2 + k] = pRGBA[(i * mipmapWidth + j) * 2 + k];
+							pTemp[(((i / 8) * (nMipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8) * 2 + k] = pRGBA[(i * nMipmapWidth + j) * 2 + k];
 						}
 					}
 				}
 				u8* pMipmapBuffer = *a_pBuffer + nCurrentSize;
-				for (n32 i = 0; i < mipmapWidth * mipmapHeight / 64; i++)
+				for (n32 i = 0; i < nMipmapWidth * nMipmapHeight / 64; i++)
 				{
 					for (n32 j = 0; j < 64; j++)
 					{
@@ -862,19 +868,19 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 		case kTextureFormatLA88:
 		case kTextureFormatHL8:
 			{
-				u8* pTemp = new u8[mipmapWidth * mipmapHeight * 2];
-				for (n32 i = 0; i < mipmapHeight; i++)
+				u8* pTemp = new u8[nMipmapWidth * nMipmapHeight * 2];
+				for (n32 i = 0; i < nMipmapHeight; i++)
 				{
-					for (n32 j = 0; j < mipmapWidth; j++)
+					for (n32 j = 0; j < nMipmapWidth; j++)
 					{
 						for (n32 k = 0; k < 2; k++)
 						{
-							pTemp[(((i / 8) * (mipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8) * 2 + k] = pRGBA[(i * mipmapWidth + j) * 2 + k];
+							pTemp[(((i / 8) * (nMipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8) * 2 + k] = pRGBA[(i * nMipmapWidth + j) * 2 + k];
 						}
 					}
 				}
 				u8* pMipmapBuffer = *a_pBuffer + nCurrentSize;
-				for (n32 i = 0; i < mipmapWidth * mipmapHeight / 64; i++)
+				for (n32 i = 0; i < nMipmapWidth * nMipmapHeight / 64; i++)
 				{
 					for (n32 j = 0; j < 64; j++)
 					{
@@ -891,16 +897,16 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 		case kTextureFormatA8:
 		case kTextureFormatLA44:
 			{
-				u8* pTemp = new u8[mipmapWidth * mipmapHeight];
-				for (n32 i = 0; i < mipmapHeight; i++)
+				u8* pTemp = new u8[nMipmapWidth * nMipmapHeight];
+				for (n32 i = 0; i < nMipmapHeight; i++)
 				{
-					for (n32 j = 0; j < mipmapWidth; j++)
+					for (n32 j = 0; j < nMipmapWidth; j++)
 					{
-						pTemp[((i / 8) * (mipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8] = pRGBA[i * mipmapWidth + j];
+						pTemp[((i / 8) * (nMipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8] = pRGBA[i * nMipmapWidth + j];
 					}
 				}
 				u8* pMipmapBuffer = *a_pBuffer + nCurrentSize;
-				for (n32 i = 0; i < mipmapWidth * mipmapHeight / 64; i++)
+				for (n32 i = 0; i < nMipmapWidth * nMipmapHeight / 64; i++)
 				{
 					for (n32 j = 0; j < 64; j++)
 					{
@@ -913,16 +919,16 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 		case kTextureFormatL4:
 		case kTextureFormatA4:
 			{
-				u8* pTemp = new u8[mipmapWidth * mipmapHeight];
-				for (n32 i = 0; i < mipmapHeight; i++)
+				u8* pTemp = new u8[nMipmapWidth * nMipmapHeight];
+				for (n32 i = 0; i < nMipmapHeight; i++)
 				{
-					for (n32 j = 0; j < mipmapWidth; j++)
+					for (n32 j = 0; j < nMipmapWidth; j++)
 					{
-						pTemp[((i / 8) * (mipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8] = pRGBA[i * mipmapWidth + j];
+						pTemp[((i / 8) * (nMipmapWidth / 8) + j / 8) * 64 + i % 8 * 8 + j % 8] = pRGBA[i * nMipmapWidth + j];
 					}
 				}
 				u8* pMipmapBuffer = *a_pBuffer + nCurrentSize;
-				for (n32 i = 0; i < mipmapWidth * mipmapHeight / 64; i++)
+				for (n32 i = 0; i < nMipmapWidth * nMipmapHeight / 64; i++)
 				{
 					for (n32 j = 0; j < 64; j += 2)
 					{
@@ -934,16 +940,16 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 			break;
 		case kTextureFormatETC1:
 			{
-				u8* pTemp = new u8[mipmapWidth * mipmapHeight / 2];
-				for (n32 i = 0; i < mipmapHeight; i += 4)
+				u8* pTemp = new u8[nMipmapWidth * nMipmapHeight / 2];
+				for (n32 i = 0; i < nMipmapHeight; i += 4)
 				{
-					for (n32 j = 0; j < mipmapWidth; j += 4)
+					for (n32 j = 0; j < nMipmapWidth; j += 4)
 					{
-						memcpy(pTemp + (((i / 8) * (mipmapWidth / 8) + j / 8) * 4 + (i % 8 / 4 * 2 + j % 8 / 4)) * 8, pRGBA + ((i / 4) * (mipmapWidth / 4) + j / 4) * 8, 8);
+						memcpy(pTemp + (((i / 8) * (nMipmapWidth / 8) + j / 8) * 4 + (i % 8 / 4 * 2 + j % 8 / 4)) * 8, pRGBA + ((i / 4) * (nMipmapWidth / 4) + j / 4) * 8, 8);
 					}
 				}
 				u8* pMipmapBuffer = *a_pBuffer + nCurrentSize;
-				for (n32 i = 0; i < mipmapWidth * mipmapHeight / 2 / 8; i++)
+				for (n32 i = 0; i < nMipmapWidth * nMipmapHeight / 2 / 8; i++)
 				{
 					for (n32 j = 0; j < 8; j++)
 					{
@@ -955,16 +961,16 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 			break;
 		case kTextureFormatETC1_A4:
 			{
-				u8* pTemp = new u8[mipmapWidth * mipmapHeight / 2];
-				for (n32 i = 0; i < mipmapHeight; i += 4)
+				u8* pTemp = new u8[nMipmapWidth * nMipmapHeight / 2];
+				for (n32 i = 0; i < nMipmapHeight; i += 4)
 				{
-					for (n32 j = 0; j < mipmapWidth; j += 4)
+					for (n32 j = 0; j < nMipmapWidth; j += 4)
 					{
-						memcpy(pTemp + (((i / 8) * (mipmapWidth / 8) + j / 8) * 4 + (i % 8 / 4 * 2 + j % 8 / 4)) * 8, pRGBA + ((i / 4) * (mipmapWidth / 4) + j / 4) * 8, 8);
+						memcpy(pTemp + (((i / 8) * (nMipmapWidth / 8) + j / 8) * 4 + (i % 8 / 4 * 2 + j % 8 / 4)) * 8, pRGBA + ((i / 4) * (nMipmapWidth / 4) + j / 4) * 8, 8);
 					}
 				}
 				u8* pMipmapBuffer = *a_pBuffer + nCurrentSize;
-				for (n32 i = 0; i < mipmapWidth * mipmapHeight / 2 / 8; i++)
+				for (n32 i = 0; i < nMipmapWidth * nMipmapHeight / 2 / 8; i++)
 				{
 					for (n32 j = 0; j < 8; j++)
 					{
@@ -972,15 +978,15 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 					}
 				}
 				delete[] pTemp;
-				pTemp = new u8[mipmapWidth * mipmapHeight];
-				for (n32 i = 0; i < mipmapHeight; i++)
+				pTemp = new u8[nMipmapWidth * nMipmapHeight];
+				for (n32 i = 0; i < nMipmapHeight; i++)
 				{
-					for (n32 j = 0; j < mipmapWidth; j++)
+					for (n32 j = 0; j < nMipmapWidth; j++)
 					{
-						pTemp[(((i / 8) * (mipmapWidth / 8) + j / 8) * 4 + i % 8 / 4 * 2 + j % 8 / 4) * 16 + i % 4 * 4 + j % 4] = pAlpha[i * mipmapWidth + j];
+						pTemp[(((i / 8) * (nMipmapWidth / 8) + j / 8) * 4 + i % 8 / 4 * 2 + j % 8 / 4) * 16 + i % 4 * 4 + j % 4] = pAlpha[i * nMipmapWidth + j];
 					}
 				}
-				for (n32 i = 0; i < mipmapWidth * mipmapHeight / 16; i++)
+				for (n32 i = 0; i < nMipmapWidth * nMipmapHeight / 16; i++)
 				{
 					for (n32 j = 0; j < 4; j++)
 					{
@@ -992,7 +998,7 @@ void CCgfx::encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 
 			}
 			break;
 		}
-		nCurrentSize += mipmapWidth * mipmapHeight * a_nBPP / 8;
+		nCurrentSize += nMipmapWidth * nMipmapHeight * a_nBPP / 8;
 	}
 	delete pPVRTexture;
 	if (a_nFormat == kTextureFormatETC1_A4)
