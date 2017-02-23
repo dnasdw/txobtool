@@ -66,7 +66,7 @@ bool CCgfx::ExportFile()
 		{
 			if (!bMakeDir)
 			{
-				MkdirA(m_pDirName);
+				Mkdir(m_pDirName);
 				bMakeDir = true;
 			}
 			n32 nNameOffset = (i + 2) * 4 + pBinU32[i + 2];
@@ -103,18 +103,18 @@ bool CCgfx::ExportFile()
 			pvrtexture::CPVRTexture* pPVRTexture = nullptr;
 			if (decode(pBin + nOffset, nWidth, nHeight, nFormat, &pPVRTexture) == 0)
 			{
-				String sPngFileName = Format(STR("%s/%s.png"), AToU(m_pDirName).c_str(), AToU(reinterpret_cast<char*>(pBin + nNameOffset)).c_str());
-				FILE* fp = Fopen(sPngFileName.c_str(), STR("wb"));
+				UString sPngFileName = Format(USTR("%s/%s.png"), AToU(m_pDirName).c_str(), AToU(reinterpret_cast<char*>(pBin + nNameOffset)).c_str());
+				FILE* fp = UFopen(sPngFileName.c_str(), USTR("wb"));
 				if (fp == nullptr)
 				{
-					Printf(STR("ERROR: open file %s failed\n\n"), sPngFileName.c_str());
+					UPrintf(USTR("ERROR: open file %s failed\n\n"), sPngFileName.c_str());
 					delete pPVRTexture;
 					bResult = false;
 					break;
 				}
 				if (m_bVerbose)
 				{
-					Printf(STR("save: %s\n"), sPngFileName.c_str());
+					UPrintf(USTR("save: %s\n"), sPngFileName.c_str());
 				}
 				png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, nullptr, nullptr);
 				if (png_ptr == nullptr)
@@ -222,17 +222,17 @@ bool CCgfx::ImportFile()
 			{
 				printf("INFO: width: %X, height: %X, checksize: %X, size: %X, bpp: %d, offset: %X, format: %0X\n", nWidth, nHeight, nCheckSize, nSize, nSize * 8 / nWidth / nHeight, nOffset, nFormat);
 			}
-			String sPngFileName = Format(STR("%s/%s.png"), AToU(m_pDirName).c_str(), AToU(reinterpret_cast<char*>(pBin + nNameOffset)).c_str());
-			FILE* fp = Fopen(sPngFileName.c_str(), STR("rb"));
+			UString sPngFileName = Format(USTR("%s/%s.png"), AToU(m_pDirName).c_str(), AToU(reinterpret_cast<char*>(pBin + nNameOffset)).c_str());
+			FILE* fp = UFopen(sPngFileName.c_str(), USTR("rb"));
 			if (fp == nullptr)
 			{
-				Printf(STR("ERROR: open file %s failed\n\n"), sPngFileName.c_str());
+				UPrintf(USTR("ERROR: open file %s failed\n\n"), sPngFileName.c_str());
 				bResult = false;
 				break;
 			}
 			if (m_bVerbose)
 			{
-				Printf(STR("load: %s\n"), sPngFileName.c_str());
+				UPrintf(USTR("load: %s\n"), sPngFileName.c_str());
 			}
 			png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, nullptr, nullptr);
 			if (png_ptr == nullptr)
