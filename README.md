@@ -6,26 +6,36 @@ A tool for exporting/importing cgfx file.
 
 - v1.0.0 @ 2015.03.11 - First release
 - v1.0.1 @ 2017.02.22 - Fix offset
+- v1.0.2 @ 2017.03.25 - Refactoring
 
 ## Platforms
 
+- Windows
 - Linux
 - macOS
-- Windows *XP+*
 
 ## Building
 
 ### Dependencies
 
 - cmake
+- libpng
 
 ### Compiling
 
+- make 64-bit version
 ~~~
 mkdir project
 cd project
-cmake ..
-cmake ..
+cmake -DUSE_DEP=OFF ..
+make
+~~~
+
+- make 32-bit version
+~~~
+mkdir project
+cd project
+cmake -DBUILD64=OFF -DUSE_DEP=OFF ..
 make
 ~~~
 
@@ -48,8 +58,6 @@ txobtool [option...] [option]...
 ~~~
 txobtool.sh [option...] [option]...
 ~~~
-
-> Remember to do `chmod +x txobtool` first
 
 ## Options
 
