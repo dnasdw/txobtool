@@ -46,10 +46,9 @@ void CCgfx::SetVerbose(bool a_bVerbose)
 bool CCgfx::ExportFile()
 {
 	bool bResult = true;
-	m_fpCgfx = fopen(m_pFileName, "rb");
+	m_fpCgfx = Fopen(m_pFileName, "rb");
 	if (m_fpCgfx == nullptr)
 	{
-		printf("ERROR: open file %s failed\n\n", m_pFileName);
 		return false;
 	}
 	fseek(m_fpCgfx, 0, SEEK_END);
@@ -103,18 +102,17 @@ bool CCgfx::ExportFile()
 			pvrtexture::CPVRTexture* pPVRTexture = nullptr;
 			if (decode(pBin + nOffset, nWidth, nHeight, nFormat, &pPVRTexture) == 0)
 			{
-				UString sPngFileName = Format(USTR("%s/%s.png"), AToU(m_pDirName).c_str(), AToU(reinterpret_cast<char*>(pBin + nNameOffset)).c_str());
+				UString sPngFileName = Format(USTR("%") PRIUS USTR("/%") PRIUS USTR(".png"), AToU(m_pDirName).c_str(), AToU(reinterpret_cast<char*>(pBin + nNameOffset)).c_str());
 				FILE* fp = UFopen(sPngFileName.c_str(), USTR("wb"));
 				if (fp == nullptr)
 				{
-					UPrintf(USTR("ERROR: open file %s failed\n\n"), sPngFileName.c_str());
 					delete pPVRTexture;
 					bResult = false;
 					break;
 				}
 				if (m_bVerbose)
 				{
-					UPrintf(USTR("save: %s\n"), sPngFileName.c_str());
+					UPrintf(USTR("save: %") PRIUS USTR("\n"), sPngFileName.c_str());
 				}
 				png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, nullptr, nullptr);
 				if (png_ptr == nullptr)
@@ -174,10 +172,9 @@ bool CCgfx::ExportFile()
 bool CCgfx::ImportFile()
 {
 	bool bResult = true;
-	m_fpCgfx = fopen(m_pFileName, "rb");
+	m_fpCgfx = Fopen(m_pFileName, "rb");
 	if (m_fpCgfx == nullptr)
 	{
-		printf("ERROR: open file %s failed\n\n", m_pFileName);
 		return false;
 	}
 	fseek(m_fpCgfx, 0, SEEK_END);
@@ -222,17 +219,16 @@ bool CCgfx::ImportFile()
 			{
 				printf("INFO: width: %X, height: %X, checksize: %X, size: %X, bpp: %d, offset: %X, format: %0X\n", nWidth, nHeight, nCheckSize, nSize, nSize * 8 / nWidth / nHeight, nOffset, nFormat);
 			}
-			UString sPngFileName = Format(USTR("%s/%s.png"), AToU(m_pDirName).c_str(), AToU(reinterpret_cast<char*>(pBin + nNameOffset)).c_str());
+			UString sPngFileName = Format(USTR("%") PRIUS USTR("/%") PRIUS USTR(".png"), AToU(m_pDirName).c_str(), AToU(reinterpret_cast<char*>(pBin + nNameOffset)).c_str());
 			FILE* fp = UFopen(sPngFileName.c_str(), USTR("rb"));
 			if (fp == nullptr)
 			{
-				UPrintf(USTR("ERROR: open file %s failed\n\n"), sPngFileName.c_str());
 				bResult = false;
 				break;
 			}
 			if (m_bVerbose)
 			{
-				UPrintf(USTR("load: %s\n"), sPngFileName.c_str());
+				UPrintf(USTR("load: %") PRIUS USTR("\n"), sPngFileName.c_str());
 			}
 			png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, nullptr, nullptr);
 			if (png_ptr == nullptr)
@@ -331,7 +327,7 @@ bool CCgfx::ImportFile()
 	}
 	if (bResult)
 	{
-		m_fpCgfx = fopen(m_pFileName, "wb");
+		m_fpCgfx = Fopen(m_pFileName, "wb");
 		if (m_fpCgfx != nullptr)
 		{
 			fwrite(pBin, 1, uFileSize, m_fpCgfx);
@@ -339,7 +335,6 @@ bool CCgfx::ImportFile()
 		}
 		else
 		{
-			printf("ERROR: open file %s failed\n\n", m_pFileName);
 			bResult = false;
 		}
 	}
@@ -349,10 +344,9 @@ bool CCgfx::ImportFile()
 
 bool CCgfx::IsCgfxFile(const char* a_pFileName)
 {
-	FILE* fp = fopen(a_pFileName, "rb");
+	FILE* fp = Fopen(a_pFileName, "rb");
 	if (fp == nullptr)
 	{
-		printf("ERROR: open file %s failed\n\n", a_pFileName);
 		return false;
 	}
 	u32 uSignature = 0;
