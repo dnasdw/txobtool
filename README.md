@@ -7,6 +7,7 @@ A tool for exporting/importing cgfx file.
 - v1.0.0 @ 2015.03.11 - First release
 - v1.0.1 @ 2017.02.22 - Fix offset
 - v1.0.2 @ 2017.03.25 - Refactoring
+- v1.0.3 @ 2017.04.02 - Refactoring
 
 ## Platforms
 
@@ -19,6 +20,7 @@ A tool for exporting/importing cgfx file.
 ### Dependencies
 
 - cmake
+- zlib
 - libpng
 
 ### Compiling
