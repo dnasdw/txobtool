@@ -14,8 +14,6 @@ CTxobTool::SOption CTxobTool::s_Option[] =
 
 CTxobTool::CTxobTool()
 	: m_eAction(kActionNone)
-	, m_pFileName(nullptr)
-	, m_pDirName(nullptr)
 	, m_bVerbose(false)
 {
 }
@@ -94,19 +92,19 @@ int CTxobTool::CheckOptions()
 	}
 	if (m_eAction != kActionHelp)
 	{
-		if (m_pFileName == nullptr)
+		if (m_sFileName.empty())
 		{
 			printf("ERROR: no --file option\n\n");
 			return 1;
 		}
-		if (m_pDirName == nullptr)
+		if (m_sDirName.empty())
 		{
 			printf("ERROR: no --dir option\n\n");
 			return 1;
 		}
-		if (!CCgfx::IsCgfxFile(m_pFileName))
+		if (!CCgfx::IsCgfxFile(m_sFileName))
 		{
-			printf("ERROR: %s is not a cgfx file\n\n", m_pFileName);
+			printf("ERROR: %s is not a cgfx file\n\n", m_sFileName.c_str());
 			return 1;
 		}
 	}
@@ -207,7 +205,7 @@ CTxobTool::EParseOptionReturn CTxobTool::parseOptions(const char* a_pName, int& 
 		{
 			return kParseOptionReturnNoArgument;
 		}
-		m_pFileName = a_pArgv[++a_nIndex];
+		m_sFileName = a_pArgv[++a_nIndex];
 	}
 	else if (strcmp(a_pName, "dir") == 0)
 	{
@@ -215,7 +213,7 @@ CTxobTool::EParseOptionReturn CTxobTool::parseOptions(const char* a_pName, int& 
 		{
 			return kParseOptionReturnNoArgument;
 		}
-		m_pDirName = a_pArgv[++a_nIndex];
+		m_sDirName = a_pArgv[++a_nIndex];
 	}
 	else if (strcmp(a_pName, "verbose") == 0)
 	{
@@ -243,8 +241,8 @@ CTxobTool::EParseOptionReturn CTxobTool::parseOptions(int a_nKey, int& a_nIndex,
 bool CTxobTool::exportFile()
 {
 	CCgfx cgfx;
-	cgfx.SetFileName(m_pFileName);
-	cgfx.SetDirName(m_pDirName);
+	cgfx.SetFileName(m_sFileName);
+	cgfx.SetDirName(m_sDirName);
 	cgfx.SetVerbose(m_bVerbose);
 	return cgfx.ExportFile();
 }
@@ -252,8 +250,8 @@ bool CTxobTool::exportFile()
 bool CTxobTool::importFile()
 {
 	CCgfx cgfx;
-	cgfx.SetFileName(m_pFileName);
-	cgfx.SetDirName(m_pDirName);
+	cgfx.SetFileName(m_sFileName);
+	cgfx.SetDirName(m_sDirName);
 	cgfx.SetVerbose(m_bVerbose);
 	return cgfx.ImportFile();
 }

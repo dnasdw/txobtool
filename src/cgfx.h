@@ -30,12 +30,12 @@ public:
 	};
 	CCgfx();
 	~CCgfx();
-	void SetFileName(const char* a_pFileName);
-	void SetDirName(const char* a_pDirName);
+	void SetFileName(const string& a_sFileName);
+	void SetDirName(const string& a_sDirName);
 	void SetVerbose(bool a_bVerbose);
 	bool ExportFile();
 	bool ImportFile();
-	static bool IsCgfxFile(const char* a_pFileName);
+	static bool IsCgfxFile(const string& a_sFileName);
 	static const u32 s_uSignatureCgfx;
 	static const u32 s_uSignatureTxob;
 	static const int s_nBPP[];
@@ -43,10 +43,9 @@ public:
 private:
 	static int decode(u8* a_pBuffer, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, pvrtexture::CPVRTexture** a_pPVRTexture);
 	static void encode(u8* a_pData, n32 a_nWidth, n32 a_nHeight, n32 a_nFormat, n32 a_nMipmapLevel, n32 a_nBPP, u8** a_pBuffer);
-	const char* m_pFileName;
-	const char* m_pDirName;
+	string m_sFileName;
+	UString m_sDirName;
 	bool m_bVerbose;
-	FILE* m_fpCgfx;
 };
 
 #endif	// CGFX_H_
