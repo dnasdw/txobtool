@@ -26,14 +26,14 @@ CCgfx::~CCgfx()
 {
 }
 
-void CCgfx::SetFileName(const string& a_sFileName)
+void CCgfx::SetFileName(const UString& a_sFileName)
 {
 	m_sFileName = a_sFileName;
 }
 
-void CCgfx::SetDirName(const string& a_sDirName)
+void CCgfx::SetDirName(const UString& a_sDirName)
 {
-	m_sDirName = AToU(a_sDirName);
+	m_sDirName = a_sDirName;
 }
 
 void CCgfx::SetVerbose(bool a_bVerbose)
@@ -44,7 +44,7 @@ void CCgfx::SetVerbose(bool a_bVerbose)
 bool CCgfx::ExportFile()
 {
 	bool bResult = true;
-	FILE* fp = Fopen(m_sFileName.c_str(), "rb");
+	FILE* fp = UFopen(m_sFileName.c_str(), USTR("rb"));
 	if (fp == nullptr)
 	{
 		return false;
@@ -72,14 +72,14 @@ bool CCgfx::ExportFile()
 			if (nFormat < kTextureFormatRGBA8888 || nFormat > kTextureFormatETC1_A4)
 			{
 				bResult = false;
-				printf("ERROR: unknown format %d\n\n", nFormat);
+				UPrintf(USTR("ERROR: unknown format %d\n\n"), nFormat);
 				break;
 			}
 			n32 nInfoOffset = pU32[i + 13];
 			if (nInfoOffset % 4 != 0)
 			{
 				bResult = false;
-				printf("ERROR: info offset %% 4 != 0\n\n");
+				UPrintf(USTR("ERROR: info offset %% 4 != 0\n\n"));
 				break;
 			}
 			n32 nHeight = pU32[i + 13 + nInfoOffset / 4];
@@ -95,7 +95,7 @@ bool CCgfx::ExportFile()
 			}
 			if (nSize != nCheckSize && m_bVerbose)
 			{
-				printf("INFO: width: %X, height: %X, checksize: %X, size: %X, bpp: %d, offset: %X, format: %0X\n", nWidth, nHeight, nCheckSize, nSize, nSize * 8 / nWidth / nHeight, nOffset, nFormat);
+				UPrintf(USTR("INFO: width: %X, height: %X, checksize: %X, size: %X, bpp: %d, offset: %X, format: %0X\n"), nWidth, nHeight, nCheckSize, nSize, nSize * 8 / nWidth / nHeight, nOffset, nFormat);
 			}
 			pvrtexture::CPVRTexture* pPVRTexture = nullptr;
 			if (decode(pCgfx + nOffset, nWidth, nHeight, nFormat, &pPVRTexture) == 0)
@@ -118,7 +118,7 @@ bool CCgfx::ExportFile()
 					fclose(fpSub);
 					delete pPVRTexture;
 					bResult = false;
-					printf("ERROR: png_create_write_struct error\n\n");
+					UPrintf(USTR("ERROR: png_create_write_struct error\n\n"));
 					break;
 				}
 				png_infop pInfo = png_create_info_struct(pPng);
@@ -128,7 +128,7 @@ bool CCgfx::ExportFile()
 					fclose(fpSub);
 					delete pPVRTexture;
 					bResult = false;
-					printf("ERROR: png_create_info_struct error\n\n");
+					UPrintf(USTR("ERROR: png_create_info_struct error\n\n"));
 					break;
 				}
 				if (setjmp(png_jmpbuf(pPng)) != 0)
@@ -137,7 +137,7 @@ bool CCgfx::ExportFile()
 					fclose(fpSub);
 					delete pPVRTexture;
 					bResult = false;
-					printf("ERROR: setjmp error\n\n");
+					UPrintf(USTR("ERROR: setjmp error\n\n"));
 					break;
 				}
 				png_init_io(pPng, fpSub);
@@ -158,7 +158,7 @@ bool CCgfx::ExportFile()
 			else
 			{
 				bResult = false;
-				printf("ERROR: decode error\n\n");
+				UPrintf(USTR("ERROR: decode error\n\n"));
 				break;
 			}
 		}
@@ -170,7 +170,7 @@ bool CCgfx::ExportFile()
 bool CCgfx::ImportFile()
 {
 	bool bResult = true;
-	FILE* fp = Fopen(m_sFileName.c_str(), "rb");
+	FILE* fp = UFopen(m_sFileName.c_str(), USTR("rb"));
 	if (fp == nullptr)
 	{
 		return false;
@@ -192,14 +192,14 @@ bool CCgfx::ImportFile()
 			if (nFormat < kTextureFormatRGBA8888 || nFormat > kTextureFormatETC1_A4)
 			{
 				bResult = false;
-				printf("ERROR: unknown format %d\n\n", nFormat);
+				UPrintf(USTR("ERROR: unknown format %d\n\n"), nFormat);
 				break;
 			}
 			n32 nInfoOffset = pU32[i + 13];
 			if (nInfoOffset % 4 != 0)
 			{
 				bResult = false;
-				printf("ERROR: info offset %% 4 != 0\n\n");
+				UPrintf(USTR("ERROR: info offset %% 4 != 0\n\n"));
 				break;
 			}
 			n32 nHeight = pU32[i + 13 + nInfoOffset / 4];
@@ -215,7 +215,7 @@ bool CCgfx::ImportFile()
 			}
 			if (nSize != nCheckSize && m_bVerbose)
 			{
-				printf("INFO: width: %X, height: %X, checksize: %X, size: %X, bpp: %d, offset: %X, format: %0X\n", nWidth, nHeight, nCheckSize, nSize, nSize * 8 / nWidth / nHeight, nOffset, nFormat);
+				UPrintf(USTR("INFO: width: %X, height: %X, checksize: %X, size: %X, bpp: %d, offset: %X, format: %0X\n"), nWidth, nHeight, nCheckSize, nSize, nSize * 8 / nWidth / nHeight, nOffset, nFormat);
 			}
 			UString sPngFileName = m_sDirName + USTR("/") + AToU(reinterpret_cast<char*>(pCgfx + nNameOffset)) + USTR(".png");
 			FILE* fpSub = UFopen(sPngFileName.c_str(), USTR("rb"));
@@ -233,7 +233,7 @@ bool CCgfx::ImportFile()
 			{
 				fclose(fpSub);
 				bResult = false;
-				printf("ERROR: png_create_read_struct error\n\n");
+				UPrintf(USTR("ERROR: png_create_read_struct error\n\n"));
 				break;
 			}
 			png_infop pInfo = png_create_info_struct(pPng);
@@ -242,7 +242,7 @@ bool CCgfx::ImportFile()
 				png_destroy_read_struct(&pPng, nullptr, nullptr);
 				fclose(fpSub);
 				bResult = false;
-				printf("ERROR: png_create_info_struct error\n\n");
+				UPrintf(USTR("ERROR: png_create_info_struct error\n\n"));
 				break;
 			}
 			png_infop pEndInfo = png_create_info_struct(pPng);
@@ -251,7 +251,7 @@ bool CCgfx::ImportFile()
 				png_destroy_read_struct(&pPng, &pInfo, nullptr);
 				fclose(fpSub);
 				bResult = false;
-				printf("ERROR: png_create_info_struct error\n\n");
+				UPrintf(USTR("ERROR: png_create_info_struct error\n\n"));
 				break;
 			}
 			if (setjmp(png_jmpbuf(pPng)) != 0)
@@ -259,7 +259,7 @@ bool CCgfx::ImportFile()
 				png_destroy_read_struct(&pPng, &pInfo, &pEndInfo);
 				fclose(fpSub);
 				bResult = false;
-				printf("ERROR: setjmp error\n\n");
+				UPrintf(USTR("ERROR: setjmp error\n\n"));
 				break;
 			}
 			png_init_io(pPng, fpSub);
@@ -270,7 +270,7 @@ bool CCgfx::ImportFile()
 				png_destroy_read_struct(&pPng, &pInfo, &pEndInfo);
 				fclose(fpSub);
 				bResult = false;
-				printf("ERROR: nPngWidth != nWidth\n\n");
+				UPrintf(USTR("ERROR: nPngWidth != nWidth\n\n"));
 				break;
 			}
 			n32 nPngHeight = png_get_image_height(pPng, pInfo);
@@ -279,7 +279,7 @@ bool CCgfx::ImportFile()
 				png_destroy_read_struct(&pPng, &pInfo, &pEndInfo);
 				fclose(fpSub);
 				bResult = false;
-				printf("ERROR: nPngHeight != nHeight\n\n");
+				UPrintf(USTR("ERROR: nPngHeight != nHeight\n\n"));
 				break;
 			}
 			n32 nBitDepth = png_get_bit_depth(pPng, pInfo);
@@ -288,7 +288,7 @@ bool CCgfx::ImportFile()
 				png_destroy_read_struct(&pPng, &pInfo, &pEndInfo);
 				fclose(fpSub);
 				bResult = false;
-				printf("ERROR: nBitDepth != 8\n\n");
+				UPrintf(USTR("ERROR: nBitDepth != 8\n\n"));
 				break;
 			}
 			n32 nColorType = png_get_color_type(pPng, pInfo);
@@ -297,7 +297,7 @@ bool CCgfx::ImportFile()
 				png_destroy_read_struct(&pPng, &pInfo, &pEndInfo);
 				fclose(fpSub);
 				bResult = false;
-				printf("ERROR: nColorType != PNG_COLOR_TYPE_RGB_ALPHA\n\n");
+				UPrintf(USTR("ERROR: nColorType != PNG_COLOR_TYPE_RGB_ALPHA\n\n"));
 				break;
 			}
 			u8* pData = new u8[nPngWidth * nPngHeight * 4];
@@ -325,7 +325,7 @@ bool CCgfx::ImportFile()
 	}
 	if (bResult)
 	{
-		fp = Fopen(m_sFileName.c_str(), "wb");
+		fp = UFopen(m_sFileName.c_str(), USTR("wb"));
 		if (fp != nullptr)
 		{
 			fwrite(pCgfx, 1, uCgfxSize, fp);
@@ -340,9 +340,9 @@ bool CCgfx::ImportFile()
 	return bResult;
 }
 
-bool CCgfx::IsCgfxFile(const string& a_sFileName)
+bool CCgfx::IsCgfxFile(const UString& a_sFileName)
 {
-	FILE* fp = Fopen(a_sFileName.c_str(), "rb");
+	FILE* fp = UFopen(a_sFileName.c_str(), USTR("rb"));
 	if (fp == nullptr)
 	{
 		return false;

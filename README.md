@@ -8,6 +8,7 @@ A tool for exporting/importing cgfx file.
 - v1.0.1 @ 2017.02.22 - Fix offset
 - v1.0.2 @ 2017.03.25 - Refactoring
 - v1.0.3 @ 2017.04.02 - Refactoring
+- v1.0.4 @ 2017.04.04 - Commandline support unicode
 
 ## Platforms
 

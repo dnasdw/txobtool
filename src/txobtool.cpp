@@ -3,12 +3,12 @@
 
 CTxobTool::SOption CTxobTool::s_Option[] =
 {
-	{ "export", 'e', "export from the target file" },
-	{ "import", 'i', "import to the target file" },
-	{ "file", 'f', "the target file" },
-	{ "dir", 'd', "the dir for the target file" },
-	{ "verbose", 'v', "show the info" },
-	{ "help", 'h', "show this help" },
+	{ USTR("export"), USTR('e'), USTR("export from the target file") },
+	{ USTR("import"), USTR('i'), USTR("import to the target file") },
+	{ USTR("file"), USTR('f'), USTR("the target file") },
+	{ USTR("dir"), USTR('d'), USTR("the dir for the target file") },
+	{ USTR("verbose"), USTR('v'), USTR("show the info") },
+	{ USTR("help"), USTR('h'), USTR("show this help") },
 	{ nullptr, 0, nullptr }
 };
 
@@ -22,7 +22,7 @@ CTxobTool::~CTxobTool()
 {
 }
 
-int CTxobTool::ParseOptions(int a_nArgc, char* a_pArgv[])
+int CTxobTool::ParseOptions(int a_nArgc, UChar* a_pArgv[])
 {
 	if (a_nArgc <= 1)
 	{
@@ -30,18 +30,18 @@ int CTxobTool::ParseOptions(int a_nArgc, char* a_pArgv[])
 	}
 	for (int i = 1; i < a_nArgc; i++)
 	{
-		int nArgpc = static_cast<int>(strlen(a_pArgv[i]));
+		int nArgpc = static_cast<int>(UCslen(a_pArgv[i]));
 		if (nArgpc == 0)
 		{
 			continue;
 		}
 		int nIndex = i;
-		if (a_pArgv[i][0] != '-')
+		if (a_pArgv[i][0] != USTR('-'))
 		{
-			printf("ERROR: illegal option\n\n");
+			UPrintf(USTR("ERROR: illegal option\n\n"));
 			return 1;
 		}
-		else if (nArgpc > 1 && a_pArgv[i][1] != '-')
+		else if (nArgpc > 1 && a_pArgv[i][1] != USTR('-'))
 		{
 			for (int j = 1; j < nArgpc; j++)
 			{
@@ -50,31 +50,31 @@ int CTxobTool::ParseOptions(int a_nArgc, char* a_pArgv[])
 				case kParseOptionReturnSuccess:
 					break;
 				case kParseOptionReturnIllegalOption:
-					printf("ERROR: illegal option\n\n");
+					UPrintf(USTR("ERROR: illegal option\n\n"));
 					return 1;
 				case kParseOptionReturnNoArgument:
-					printf("ERROR: no argument\n\n");
+					UPrintf(USTR("ERROR: no argument\n\n"));
 					return 1;
 				case kParseOptionReturnOptionConflict:
-					printf("ERROR: option conflict\n\n");
+					UPrintf(USTR("ERROR: option conflict\n\n"));
 					return 1;
 				}
 			}
 		}
-		else if (nArgpc > 2 && a_pArgv[i][1] == '-')
+		else if (nArgpc > 2 && a_pArgv[i][1] == USTR('-'))
 		{
 			switch (parseOptions(a_pArgv[i] + 2, nIndex, a_nArgc, a_pArgv))
 			{
 			case kParseOptionReturnSuccess:
 				break;
 			case kParseOptionReturnIllegalOption:
-				printf("ERROR: illegal option\n\n");
+				UPrintf(USTR("ERROR: illegal option\n\n"));
 				return 1;
 			case kParseOptionReturnNoArgument:
-				printf("ERROR: no argument\n\n");
+				UPrintf(USTR("ERROR: no argument\n\n"));
 				return 1;
 			case kParseOptionReturnOptionConflict:
-				printf("ERROR: option conflict\n\n");
+				UPrintf(USTR("ERROR: option conflict\n\n"));
 				return 1;
 			}
 		}
@@ -87,24 +87,24 @@ int CTxobTool::CheckOptions()
 {
 	if (m_eAction == kActionNone)
 	{
-		printf("ERROR: nothing to do\n\n");
+		UPrintf(USTR("ERROR: nothing to do\n\n"));
 		return 1;
 	}
 	if (m_eAction != kActionHelp)
 	{
 		if (m_sFileName.empty())
 		{
-			printf("ERROR: no --file option\n\n");
+			UPrintf(USTR("ERROR: no --file option\n\n"));
 			return 1;
 		}
 		if (m_sDirName.empty())
 		{
-			printf("ERROR: no --dir option\n\n");
+			UPrintf(USTR("ERROR: no --dir option\n\n"));
 			return 1;
 		}
 		if (!CCgfx::IsCgfxFile(m_sFileName))
 		{
-			printf("ERROR: %s is not a cgfx file\n\n", m_sFileName.c_str());
+			UPrintf(USTR("ERROR: %") PRIUS USTR(" is not a cgfx file\n\n"), m_sFileName.c_str());
 			return 1;
 		}
 	}
@@ -113,38 +113,38 @@ int CTxobTool::CheckOptions()
 
 int CTxobTool::Help()
 {
-	printf("txobtool %s by dnasdw\n\n", TXOBTOOL_VERSION);
-	printf("usage: txobtool [option...] [option]...\n");
-	printf("sample:\n");
-	printf("  txobtool -evfd input.bcmdl outputdir\n");
-	printf("  txobtool -ivfd output.bcmdl inputdir\n");
-	printf("\n");
-	printf("option:\n");
+	UPrintf(USTR("txobtool %") PRIUS USTR(" by dnasdw\n\n"), AToU(TXOBTOOL_VERSION).c_str());
+	UPrintf(USTR("usage: txobtool [option...] [option]...\n"));
+	UPrintf(USTR("sample:\n"));
+	UPrintf(USTR("  txobtool -evfd input.bcmdl outputdir\n"));
+	UPrintf(USTR("  txobtool -ivfd output.bcmdl inputdir\n"));
+	UPrintf(USTR("\n"));
+	UPrintf(USTR("option:\n"));
 	SOption* pOption = s_Option;
 	while (pOption->Name != nullptr || pOption->Doc != nullptr)
 	{
 		if (pOption->Name != nullptr)
 		{
-			printf("  ");
+			UPrintf(USTR("  "));
 			if (pOption->Key != 0)
 			{
-				printf("-%c,", pOption->Key);
+				UPrintf(USTR("-%c,"), pOption->Key);
 			}
 			else
 			{
-				printf("   ");
+				UPrintf(USTR("   "));
 			}
-			printf(" --%-8s", pOption->Name);
-			if (strlen(pOption->Name) >= 8 && pOption->Doc != nullptr)
+			UPrintf(USTR(" --%-8") PRIUS, pOption->Name);
+			if (UCslen(pOption->Name) >= 8 && pOption->Doc != nullptr)
 			{
-				printf("\n%16s", "");
+				UPrintf(USTR("\n%16") PRIUS, USTR(""));
 			}
 		}
 		if (pOption->Doc != nullptr)
 		{
-			printf("%s", pOption->Doc);
+			UPrintf(USTR("%") PRIUS, pOption->Doc);
 		}
-		printf("\n");
+		UPrintf(USTR("\n"));
 		pOption++;
 	}
 	return 0;
@@ -156,7 +156,7 @@ int CTxobTool::Action()
 	{
 		if (!exportFile())
 		{
-			printf("ERROR: export file failed\n\n");
+			UPrintf(USTR("ERROR: export file failed\n\n"));
 			return 1;
 		}
 	}
@@ -164,7 +164,7 @@ int CTxobTool::Action()
 	{
 		if (!importFile())
 		{
-			printf("ERROR: import file failed\n\n");
+			UPrintf(USTR("ERROR: import file failed\n\n"));
 			return 1;
 		}
 	}
@@ -175,9 +175,9 @@ int CTxobTool::Action()
 	return 0;
 }
 
-CTxobTool::EParseOptionReturn CTxobTool::parseOptions(const char* a_pName, int& a_nIndex, int a_nArgc, char* a_pArgv[])
+CTxobTool::EParseOptionReturn CTxobTool::parseOptions(const UChar* a_pName, int& a_nIndex, int a_nArgc, UChar* a_pArgv[])
 {
-	if (strcmp(a_pName, "export") == 0)
+	if (UCscmp(a_pName, USTR("export")) == 0)
 	{
 		if (m_eAction == kActionNone)
 		{
@@ -188,7 +188,7 @@ CTxobTool::EParseOptionReturn CTxobTool::parseOptions(const char* a_pName, int& 
 			return kParseOptionReturnOptionConflict;
 		}
 	}
-	else if (strcmp(a_pName, "import") == 0)
+	else if (UCscmp(a_pName, USTR("import")) == 0)
 	{
 		if (m_eAction == kActionNone)
 		{
@@ -199,7 +199,7 @@ CTxobTool::EParseOptionReturn CTxobTool::parseOptions(const char* a_pName, int& 
 			return kParseOptionReturnOptionConflict;
 		}
 	}
-	else if (strcmp(a_pName, "file") == 0)
+	else if (UCscmp(a_pName, USTR("file")) == 0)
 	{
 		if (a_nIndex + 1 >= a_nArgc)
 		{
@@ -207,7 +207,7 @@ CTxobTool::EParseOptionReturn CTxobTool::parseOptions(const char* a_pName, int& 
 		}
 		m_sFileName = a_pArgv[++a_nIndex];
 	}
-	else if (strcmp(a_pName, "dir") == 0)
+	else if (UCscmp(a_pName, USTR("dir")) == 0)
 	{
 		if (a_nIndex + 1 >= a_nArgc)
 		{
@@ -215,18 +215,18 @@ CTxobTool::EParseOptionReturn CTxobTool::parseOptions(const char* a_pName, int& 
 		}
 		m_sDirName = a_pArgv[++a_nIndex];
 	}
-	else if (strcmp(a_pName, "verbose") == 0)
+	else if (UCscmp(a_pName, USTR("verbose")) == 0)
 	{
 		m_bVerbose = true;
 	}
-	else if (strcmp(a_pName, "help") == 0)
+	else if (UCscmp(a_pName, USTR("help")) == 0)
 	{
 		m_eAction = kActionHelp;
 	}
 	return kParseOptionReturnSuccess;
 }
 
-CTxobTool::EParseOptionReturn CTxobTool::parseOptions(int a_nKey, int& a_nIndex, int m_nArgc, char* a_pArgv[])
+CTxobTool::EParseOptionReturn CTxobTool::parseOptions(int a_nKey, int& a_nIndex, int m_nArgc, UChar* a_pArgv[])
 {
 	for (SOption* pOption = s_Option; pOption->Name != nullptr || pOption->Key != 0 || pOption->Doc != nullptr; pOption++)
 	{
@@ -256,9 +256,8 @@ bool CTxobTool::importFile()
 	return cgfx.ImportFile();
 }
 
-int main(int argc, char* argv[])
+int UMain(int argc, UChar* argv[])
 {
-	SetLocale();
 	CTxobTool tool;
 	if (tool.ParseOptions(argc, argv) != 0)
 	{
